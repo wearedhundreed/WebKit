@@ -33,8 +33,10 @@ jobs:
         include:
           - fixture: Speedometer 3.0 news-next
             directory: Websites/browserbench.org/Speedometer3.0/resources/newssite/news-next
+            css-directory: Websites/browserbench.org/Speedometer3.0/resources/newssite/news-site-css
           - fixture: Speedometer 3.1 news-next
             directory: Websites/browserbench.org/Speedometer3.1/resources/newssite/news-next
+            css-directory: Websites/browserbench.org/Speedometer3.1/resources/newssite/news-site-css
 
     defaults:
       run:
@@ -46,6 +48,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+          sparse-checkout: |
+            ${{ matrix.directory }}
+            ${{ matrix.css-directory }}
+          sparse-checkout-cone-mode: true
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
