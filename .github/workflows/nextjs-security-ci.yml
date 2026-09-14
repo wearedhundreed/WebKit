@@ -1,0 +1,66 @@
+name: Next.js security CI
+
+on:
+  pull_request:
+    paths:
+      - "Websites/browserbench.org/Speedometer3.0/resources/newssite/news-next/**"
+      - "Websites/browserbench.org/Speedometer3.1/resources/newssite/news-next/**"
+      - ".github/workflows/nextjs-security-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "Websites/browserbench.org/Speedometer3.0/resources/newssite/news-next/**"
+      - "Websites/browserbench.org/Speedometer3.1/resources/newssite/news-next/**"
+      - ".github/workflows/nextjs-security-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nextjs-security-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build ${{ matrix.fixture }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - fixture: Speedometer 3.0 news-next
+            directory: Websites/browserbench.org/Speedometer3.0/resources/newssite/news-next
+          - fixture: Speedometer 3.1 news-next
+            directory: Websites/browserbench.org/Speedometer3.1/resources/newssite/news-next
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ matrix.directory }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: ${{ matrix.directory }}/package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Verify patched Next.js version
+        run: |
+          node -e 'const version = require("next/package.json").version; if (version !== "15.5.24") { throw new Error(`Expected Next.js 15.5.24, found ${version}`); }'
+          npm ls next --depth=0
+
+      - name: Build static fixture
+        run: npm run build
