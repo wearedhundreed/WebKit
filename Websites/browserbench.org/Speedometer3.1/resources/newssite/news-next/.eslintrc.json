@@ -2,7 +2,10 @@
     "extends": "plugin:@next/next/recommended",
     "parserOptions": {
         "ecmaVersion": "latest",
-        "sourceType": "module"
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "jsx": true
+        }
     },
     "settings": {
         "next": {
